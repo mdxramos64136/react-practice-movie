@@ -47,23 +47,33 @@ const tempWatchedData = [
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 //Fixing Prop drilling. Remember: With {children} you can pass any content to the
-//child compoonent. In the parente, you just nee to use opening and closing tag
+//child compoonent. In the parent, you just nee to use opening and closing tag <open> any content </open>
+// In the child, just put {children} where you want to render the content.
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   return (
     <>
-      <NavBar moviesProp={movies} />
-      <Main moviesProp={movies} />
+      <NavBar>
+        {" "}
+        <SearchBar />
+        <NumResults moviesProp={movies} />
+      </NavBar>
+
+      <Main>
+        {" "}
+        <ListBox>
+          <MovieList moviesProp={movies} />
+        </ListBox>
+      </Main>
     </>
   );
 }
 ////////////////////////////////////////////////////////////////////
-function NavBar({ moviesProp }) {
+function NavBar({ moviesProp, children }) {
   return (
     <nav className="nav-bar">
       <Logo />
-      <SearchBar />
-      <NumResults moviesProp={moviesProp} />
+      {children}
     </nav>
   );
 }
@@ -103,12 +113,12 @@ function NumResults({ moviesProp }) {
 
 //////////////////////////////////////////////////////////////////////
 
-function Main({ moviesProp }) {
+function Main({ children }) {
   const [watched, setWatched] = useState(tempWatchedData);
 
   return (
     <main className="main">
-      <ListBox moviesProp={moviesProp} />
+      {children}
       <WatchedBox
         watchedProp={watched}
         setWatchedProp={setWatched}
@@ -118,15 +128,9 @@ function Main({ moviesProp }) {
 }
 
 //////////////////////////////////////////////////////////////////////
-function ListBox({ moviesProp }) {
+function ListBox({ children }) {
   const [isOpen1, setIsOpen1] = useState(true);
 
-  // Obs.1: Por que o onClick tem apenas () e não (e)?
-  // Porque não precisamos do evento, só queremos mudar o estado.
-  // O evento (e) não está sendo usado dentro da função. Vc nao precisa acessar
-  // info do evento.
-  // Assim (), vc só está chamando a funcao. Só queremos mudar o valor de isOpen
-  // Obs.2: No React, false, null, e undefined são "não renderizáveis".
   return (
     <div className="box">
       <button
@@ -134,15 +138,15 @@ function ListBox({ moviesProp }) {
         onClick={() => setIsOpen1((open) => !open)}>
         {isOpen1 ? "–" : "+"}
       </button>
-      {isOpen1 && <MovieList watchedProp={moviesProp} />}
+      {isOpen1 && children}
     </div>
   );
 }
 ///////////////////////////////////////////////////////////////////////
-function MovieList({ watchedProp }) {
+function MovieList({ moviesProp }) {
   return (
     <ul className="list">
-      {watchedProp.map((movie) => (
+      {moviesProp.map((movie) => (
         <Movie
           movieMapProp={movie}
           key={movie.imdbID}

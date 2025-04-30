@@ -47,29 +47,34 @@ const tempWatchedData = [
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 //Fixing Prop drilling. Remember: With {children} you can pass any content to the
-//child compoonent. In the parent, you just nee to use opening and closing tag <open> any content </open>
+//child compoonent. In the parent, you just need to use opening and closing tag <open> any content </open>
 // In the child, just put {children} where you want to render the content.
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
+  const [watched, setWatched] = useState(tempWatchedData);
   return (
     <>
       <NavBar>
-        {" "}
         <SearchBar />
         <NumResults moviesProp={movies} />
       </NavBar>
 
       <Main>
-        {" "}
-        <ListBox>
+        <Box>
           <MovieList moviesProp={movies} />
-        </ListBox>
+        </Box>
+        <Box>
+          <>
+            <WatchedSumary watchedProp={watched} />
+            <WatchedMovieList watchedProp={watched} />
+          </>
+        </Box>
       </Main>
     </>
   );
 }
 ////////////////////////////////////////////////////////////////////
-function NavBar({ moviesProp, children }) {
+function NavBar({ children }) {
   return (
     <nav className="nav-bar">
       <Logo />
@@ -114,31 +119,23 @@ function NumResults({ moviesProp }) {
 //////////////////////////////////////////////////////////////////////
 
 function Main({ children }) {
-  const [watched, setWatched] = useState(tempWatchedData);
-
-  return (
-    <main className="main">
-      {children}
-      <WatchedBox
-        watchedProp={watched}
-        setWatchedProp={setWatched}
-      />
-    </main>
-  );
+  return <main className="main">{children}</main>;
 }
 
 //////////////////////////////////////////////////////////////////////
-function ListBox({ children }) {
-  const [isOpen1, setIsOpen1] = useState(true);
+//Both WatchedBox and ListBox now became a reusable component called Box.
+// Now , element(can be any name), replaced children in the ().
+function Box({ children }) {
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <div className="box">
       <button
         className="btn-toggle"
-        onClick={() => setIsOpen1((open) => !open)}>
-        {isOpen1 ? "–" : "+"}
+        onClick={() => setIsOpen((open) => !open)}>
+        {isOpen ? "–" : "+"}
       </button>
-      {isOpen1 && children}
+      {isOpen && children}{" "}
     </div>
   );
 }
@@ -169,27 +166,6 @@ function Movie({ movieMapProp }) {
   );
 }
 
-///////////////////////////////////////////////////////////////////////
-function WatchedBox({ watchedProp, setWatchedProp }) {
-  const [isOpen2, setIsOpen2] = useState(true);
-
-  return (
-    <div className="box">
-      <button
-        className="btn-toggle"
-        onClick={() => setIsOpen2((open) => !open)}>
-        {isOpen2 ? "–" : "+"}
-      </button>
-      {isOpen2 && (
-        <>
-          <WatchedSumary watchedProp={watchedProp} />
-          <WatchedMovieList watchedProp={watchedProp} />
-        </>
-      )}
-    </div>
-  );
-}
-///////////////////////////////////////////////////////////////////////
 function WatchedSumary({ watchedProp }) {
   // watchedProp.map((movie) => movie.imdbRating) cria um array só com
   // as notas imdbRating quem em seguida é passado p/ a função average p/

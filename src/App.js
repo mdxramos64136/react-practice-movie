@@ -60,20 +60,34 @@ export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const query = "Star Wars";
 
   useEffect(
     function () {
       async function fetchMovies() {
-        setIsLoading(true);
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
-        );
+        try {
+          setIsLoading(true);
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+          );
 
-        // data will the the result of convertting the response (res) to json
-        const data = await res.json();
-        setMovies(data.Search);
-        setIsLoading(false);
+          if (!res.ok)
+            throw new Error("Something went wrong with fetching movies!");
+
+          // data will the the result of convertting the response (res) to json
+          const data = await res.json();
+
+          if (data.Response === "False") throw new Error("Movie not found!");
+
+          setMovies(data.Search);
+        } catch (err) {
+          console.log(err.message);
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
       } // fetchMovies
       fetchMovies();
     }, //outter function,
@@ -88,7 +102,12 @@ export default function App() {
       </NavBar>
 
       <Main>
-        <Box>{isLoading ? <Load /> : <MovieList moviesProp={movies} />}</Box>
+        <Box>
+          {/* {isLoading ? <Load /> : <MovieList moviesProp={movies} />} */}
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList moviesProp={movies} />}
+          {error && <ErrorMessage messageProp={error} />}
+        </Box>
         <Box>
           <>
             <WatchedSumary watchedProp={watched} />
@@ -100,10 +119,18 @@ export default function App() {
   );
 }
 ////////////////////////////////////////////////////////////////////
-function Load() {
+function Loader() {
   return <p className="loader">Loanding...</p>;
 }
-
+////////////////////////////////////////////////////////////////////
+function ErrorMessage({ messageProp }) {
+  return (
+    <p className="error">
+      <span>⛔</span>
+      {messageProp}
+    </p>
+  );
+}
 ////////////////////////////////////////////////////////////////////
 function NavBar({ children }) {
   return (

@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const tempMovieData = [
   {
     imdbID: "tt1375666",
     Title: "Inception",
     Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+    Poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
   },
   {
     imdbID: "tt0133093",
@@ -29,8 +28,7 @@ const tempWatchedData = [
     imdbID: "tt1375666",
     Title: "Inception",
     Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+    Poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
     runtime: 148,
     imdbRating: 8.8,
     userRating: 10,
@@ -47,39 +45,13 @@ const tempWatchedData = [
   },
 ];
 
-const average = (arr) =>
-  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
-
-//if a var does not depend on a ything inside the component, just declare it outside.
-const KEY = "4098128";
+const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 //Fixing Prop drilling. Remember: With {children} you can pass any content to the
 //child compoonent. In the parent, you just need to use opening and closing tag <open> any content </open>
-// In the child, just put {children} where you want to render the content, which will fetch again
-// and set the movies again as well. The whole thing starts over and over again
+// In the child, just put {children} where you want to render the content.
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const query = "Star Wars";
-
-  useEffect(
-    function () {
-      async function fetchMovies() {
-        setIsLoading(true);
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
-        );
-
-        // data will the the result of convertting the response (res) to json
-        const data = await res.json();
-        setMovies(data.Search);
-        setIsLoading(false);
-      } // fetchMovies
-      fetchMovies();
-    }, //outter function,
-    []
-  ); //useEffect
-
+  const [movies, setMovies] = useState(tempMovieData);
+  const [watched, setWatched] = useState(tempWatchedData);
   return (
     <>
       <NavBar>
@@ -88,7 +60,9 @@ export default function App() {
       </NavBar>
 
       <Main>
-        <Box>{isLoading ? <Load /> : <MovieList moviesProp={movies} />}</Box>
+        <Box>
+          <MovieList moviesProp={movies} />
+        </Box>
         <Box>
           <>
             <WatchedSumary watchedProp={watched} />
@@ -99,11 +73,6 @@ export default function App() {
     </>
   );
 }
-////////////////////////////////////////////////////////////////////
-function Load() {
-  return <p className="loader">Loanding...</p>;
-}
-
 ////////////////////////////////////////////////////////////////////
 function NavBar({ children }) {
   return (
@@ -161,7 +130,9 @@ function Box({ children }) {
 
   return (
     <div className="box">
-      <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
+      <button
+        className="btn-toggle"
+        onClick={() => setIsOpen((open) => !open)}>
         {isOpen ? "–" : "+"}
       </button>
       {isOpen && children}{" "}
@@ -173,7 +144,10 @@ function MovieList({ moviesProp }) {
   return (
     <ul className="list">
       {moviesProp.map((movie) => (
-        <Movie movieMapProp={movie} key={movie.imdbID} />
+        <Movie
+          movieMapProp={movie}
+          key={movie.imdbID}
+        />
       ))}
     </ul>
   );
@@ -182,7 +156,10 @@ function MovieList({ moviesProp }) {
 function Movie({ movieMapProp }) {
   return (
     <li>
-      <img src={movieMapProp.Poster} alt={`${movieMapProp.Title} poster`} />
+      <img
+        src={movieMapProp.Poster}
+        alt={`${movieMapProp.Title} poster`}
+      />
       <h3>{movieMapProp.Title}</h3>
       <p>📅 {movieMapProp.Year}</p>
     </li>
@@ -225,7 +202,10 @@ function WatchedMovieList({ watchedProp }) {
   return (
     <ul className="list">
       {watchedProp.map((movie) => (
-        <WatchedMovie movieMapProp={movie} key={movie.imdbID} />
+        <WatchedMovie
+          movieMapProp={movie}
+          key={movie.imdbID}
+        />
       ))}
     </ul>
   );
@@ -235,7 +215,10 @@ function WatchedMovieList({ watchedProp }) {
 function WatchedMovie({ movieMapProp }) {
   return (
     <li key={movieMapProp.imdbID}>
-      <img src={movieMapProp.Poster} alt={`${movieMapProp.Title} poster`} />
+      <img
+        src={movieMapProp.Poster}
+        alt={`${movieMapProp.Title} poster`}
+      />
       <h3>{movieMapProp.Title}</h3>
       <div>
         <p>

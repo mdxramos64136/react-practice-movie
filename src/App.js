@@ -23,8 +23,19 @@ export default function App() {
     setSelectedId(selectedId === id ? null : id);
   }
 
-  function handleCloseSelected() {
-    setMovies([]);
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
+
+  function handleAddedMovie(movie) {
+    setWatched((watched) => [...watched, movie]);
+    handleCloseMovie();
+  }
+
+  //If dif. it will remain in the watched array (state). If id is the same,
+  // it will be filtered out/ be deleted.
+  function handleDeleteWatched(id) {
+    setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
   useEffect(
@@ -86,12 +97,17 @@ export default function App() {
           {selectedId ? (
             <MovieDetails
               selectedIdProp={selectedId}
-              onCloseP={handleCloseSelected}
+              onCloseP={handleCloseMovie}
+              onAddWatched={handleAddedMovie}
+              watchedProp={watched}
             />
           ) : (
             <>
               <WatchedSumary watchedProp={watched} />
-              <WatchedMovieList watchedProp={watched} />
+              <WatchedMovieList
+                watchedProp={watched}
+                onDeleteWatched={handleDeleteWatched}
+              />
             </>
           )}
         </Box>
@@ -201,8 +217,20 @@ function Movie({ movieMapProp, onSelectedMovieP }) {
   );
 }
 //////////////////////////////////////////////////////////////////////
-function MovieDetails({ selectedIdProp, onCloseP }) {
+function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
   const [movie, setMovie] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+
+  const isWatched = watchedProp
+    .map((movie) => movie.imdbID)
+    .includes(selectedIdProp);
+
+  //.? conditional chaining is necessary here so that userRating will only
+  // be accessed if movie is in the list(selectedIdProp)
+  const watchedUserRating = watchedProp.find(
+    (movie) => movie.imdbID === selectedIdProp
+  )?.userRating;
 
   //destructuring data out of the movie obj and giving properties a lowercase name:
   const {
@@ -218,17 +246,35 @@ function MovieDetails({ selectedIdProp, onCloseP }) {
     Genre: genre,
   } = movie;
 
+  function handleAdd() {
+    const newWatchedMovie = {
+      imdbID: selectedIdProp,
+      title,
+      year,
+      poster,
+      imdbRating: Number(imdbRating),
+      runtime: Number(runtime.split(" ").at(0)),
+      userRating,
+    };
+
+    onAddWatched(newWatchedMovie);
+    //onCloseP();
+  }
+
   //Each time this component mounts, The movie correspondind to the selectedID
   //we be fetched.
   useEffect(
     function () {
       async function getMoviesDetails() {
+        setIsLoading(true);
+
         const res = await fetch(
           `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedIdProp}`
         );
         const data = await res.json();
 
         setMovie(data);
+        setIsLoading(false);
       }
       getMoviesDetails();
     },
@@ -237,36 +283,54 @@ function MovieDetails({ selectedIdProp, onCloseP }) {
 
   return (
     <div className="details">
-      <header>
-        <button className="btn-black" onClick={onCloseP}>
-          &larr;
-        </button>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <header>
+            <button className="btn-back" onClick={onCloseP}>
+              &larr;
+            </button>
+            <img src={poster} alt={`Posster of ${movie} movie`} />
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>
+                {released} &bull; {runtime}
+              </p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐️</span>
+                {imdbRating} IMDb rating
+              </p>
+            </div>
+          </header>
+          <section>
+            <div className="rating">
+              {!isWatched ? (
+                <StarRating
+                  maxRating={10}
+                  size={30}
+                  onExtRating={setUserRating}
+                />
+              ) : (
+                <p>You rated this movie: {watchedUserRating} 🌟</p>
+              )}
+            </div>
 
-        <img src={poster} alt={`Posster of ${movie} movie`} />
-        <div className="details-overview">
-          <h2>{title}</h2>
-          <p>
-            {released} &bull; {runtime}
-          </p>
-          <p>{genre}</p>
-          <p>
-            <span>⭐️</span>
-            {imdbRating} IMDb rating
-          </p>
-        </div>
-      </header>
+            {userRating > 0 && (
+              <button onClick={handleAdd} className="btn-add">
+                + Add to Watched List
+              </button>
+            )}
 
-      <div className="rating">
-        <StarRating maxRating={10} size={30} />
-      </div>
-
-      <section>
-        <p>
-          <em>{plot}</em>
-        </p>
-        <p>Starring {actors}</p>
-        <p>Directed by {director}</p>
-      </section>
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Starring {actors}</p>
+            <p>Directed by {director}</p>
+          </section>
+        </>
+      )}
     </div>
   );
 }
@@ -288,11 +352,11 @@ function WatchedSumary({ watchedProp }) {
         </p>
         <p>
           <span>⭐️</span>
-          <span>{avgImdbRating}</span>
+          <span>{avgImdbRating.toFixed(2)}</span>
         </p>
         <p>
           <span>🌟</span>
-          <span>{avgUserRating}</span>
+          <span>{avgUserRating.toFixed(2)}</span>
         </p>
         <p>
           <span>⏳</span>
@@ -303,22 +367,26 @@ function WatchedSumary({ watchedProp }) {
   );
 }
 ////////////////////////////////////////////////////////////////////////
-function WatchedMovieList({ watchedProp }) {
+function WatchedMovieList({ watchedProp, onDeleteWatched }) {
   return (
     <ul className="list">
       {watchedProp.map((movie) => (
-        <WatchedMovie movieMapProp={movie} key={movie.imdbID} />
+        <WatchedMovie
+          movieMapProp={movie}
+          key={movie.imdbID}
+          onDeleteWatched={onDeleteWatched}
+        />
       ))}
     </ul>
   );
 }
 ///////////////////////////////////////////////////////////////////////
 
-function WatchedMovie({ movieMapProp }) {
+function WatchedMovie({ movieMapProp, onDeleteWatched }) {
   return (
     <li key={movieMapProp.imdbID}>
-      <img src={movieMapProp.Poster} alt={`${movieMapProp.Title} poster`} />
-      <h3>{movieMapProp.Title}</h3>
+      <img src={movieMapProp.poster} alt={`${movieMapProp.title} poster`} />
+      <h3>{movieMapProp.title}</h3>
       <div>
         <p>
           <span>⭐️</span>
@@ -332,6 +400,12 @@ function WatchedMovie({ movieMapProp }) {
           <span>⏳</span>
           <span>{movieMapProp.runtime} min</span>
         </p>
+
+        <button
+          className="btn-delete"
+          onClick={() => onDeleteWatched(movieMapProp.imdbID)}>
+          X
+        </button>
       </div>
     </li>
   );

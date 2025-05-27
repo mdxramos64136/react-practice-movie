@@ -4,7 +4,7 @@ import StarRating from "./StarRating";
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
-//if a var does not depend on a ything inside the component, just declare it outside.
+//if a var does not depend on anything inside the component, just declare it outside.
 const KEY = "4098128";
 //Fixing Prop drilling. Remember: With {children} you can pass any content to the
 //child compoonent. In the parent, you just need to use opening and closing tag <open> any content </open>
@@ -222,6 +222,7 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState(0);
 
+  //true or false
   const isWatched = watchedProp
     .map((movie) => movie.imdbID)
     .includes(selectedIdProp);

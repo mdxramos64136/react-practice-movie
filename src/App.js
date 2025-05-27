@@ -282,6 +282,20 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
     [selectedIdProp]
   );
 
+  //Changing the title of the page accondding with the movie  selected
+  //Setting the clean up function, a function the we return from an effect
+  useEffect(
+    function () {
+      if (!title) return;
+      document.title = `Movie | ${title}`;
+
+      return function () {
+        document.title = "Movie App";
+      };
+    },
+    [title]
+  );
+  ///////////////////
   return (
     <div className="details">
       {isLoading ? (
@@ -337,9 +351,6 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
 }
 //////////////////////////////////////////////////////////////////////
 function WatchedSumary({ watchedProp }) {
-  // watchedProp.map((movie) => movie.imdbRating) cria um array só com
-  // as notas imdbRating quem em seguida é passado p/ a função average p/
-  // calcular a média.
   const avgImdbRating = average(watchedProp.map((movie) => movie.imdbRating));
   const avgUserRating = average(watchedProp.map((movie) => movie.userRating));
   const avgRuntime = average(watchedProp.map((movie) => movie.runtime));
@@ -411,3 +422,15 @@ function WatchedMovie({ movieMapProp, onDeleteWatched }) {
     </li>
   );
 }
+
+// Notes:
+//function WatchedSumary({ watchedProp }) {
+// watchedProp.map((movie) => movie.imdbRating) cria um array só com
+// as notas imdbRating quem em seguida é passado p/ a função average p/
+// calcular a média.
+//clousure: a function always remember all the variables that were present
+//at the time and the place that the function was created.
+//In this case, the cleanup function was created by the time this effect was created.
+//By that time, the var was defined as the name of the selected movie.
+// The function closed over the title var and will be remembered in the future.
+// even after the component has already unmounted.

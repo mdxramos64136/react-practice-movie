@@ -40,13 +40,16 @@ export default function App() {
 
   useEffect(
     function () {
+      const controller = new AbortController();
+
       async function fetchMovies() {
         try {
           setIsLoading(true);
           setError("");
 
           const res = await fetch(
-            `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+            `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            { signal: controller.signal } // connecting the board controller with the fetch
           );
 
           if (!res.ok)
@@ -58,8 +61,9 @@ export default function App() {
           if (data.Response === "False") throw new Error("Movie not found!");
 
           setMovies(data.Search);
+          setError("");
         } catch (err) {
-          setError(err.message);
+          if (err.message !== "AbortError") setError(err.message);
         } finally {
           setIsLoading(false);
         }
@@ -70,6 +74,10 @@ export default function App() {
         return;
       }
       fetchMovies();
+
+      return function () {
+        controller.abort();
+      };
     }, //outter function,
     [query]
   ); //useEffect
@@ -422,15 +430,3 @@ function WatchedMovie({ movieMapProp, onDeleteWatched }) {
     </li>
   );
 }
-
-// Notes:
-//function WatchedSumary({ watchedProp }) {
-// watchedProp.map((movie) => movie.imdbRating) cria um array só com
-// as notas imdbRating quem em seguida é passado p/ a função average p/
-// calcular a média.
-//clousure: a function always remember all the variables that were present
-//at the time and the place that the function was created.
-//In this case, the cleanup function was created by the time this effect was created.
-//By that time, the var was defined as the name of the selected movie.
-// The function closed over the title var and will be remembered in the future.
-// even after the component has already unmounted.

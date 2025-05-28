@@ -73,6 +73,8 @@ export default function App() {
         setError("");
         return;
       }
+
+      handleCloseMovie(); //close the movie detail when a new search occours
       fetchMovies();
 
       return function () {
@@ -269,6 +271,21 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
     onAddWatched(newWatchedMovie);
     //onCloseP();
   }
+
+  useEffect(
+    function () {
+      function calbackEsc(e) {
+        if (e.code === "Escape") onCloseP();
+      }
+
+      document.addEventListener("keydown", calbackEsc);
+
+      return function () {
+        document.removeEventListener("keydown", calbackEsc);
+      };
+    },
+    [onCloseP]
+  );
 
   //Each time this component mounts, The movie correspondind to the selectedID
   //we be fetched.

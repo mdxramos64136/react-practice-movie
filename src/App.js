@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 
 const average = (arr) =>
@@ -45,10 +45,6 @@ export default function App() {
   }
 
   //Storing data using useEffect.
-  //Note que aqui nós nao precisamos utilizar o spreed operator ...watched porque
-  // o useEffect só será executado quando watched mudar, ou seja, após a execuçao
-  // de handleAddedMovie. logo, o dado já está atualizado, sem risco de stale data.
-
   useEffect(
     function () {
       localStorage.setItem("watched", JSON.stringify(watched));
@@ -166,7 +162,29 @@ function NavBar({ children }) {
   );
 }
 //////////////////////////////////////////////////////////////////////
+// remember> .current acces the value of the ref (inputelement)
+// Putting focus on element. It activates the field for typing immediately
+// put the callback function out of the addeventListener so that you can clean it up later.
 function SearchBar({ queryProp, setQueryProp }) {
+  const inputElement = useRef(null);
+
+  useEffect(
+    function () {
+      function callback(e) {
+        if (document.activeElement === inputElement.current) return;
+
+        if (e.code === "Enter") {
+          inputElement.current.focus();
+          setQueryProp("");
+        }
+      }
+
+      document.addEventListener("keydown", callback);
+      return () => document.removeEventListener("keydown", callback);
+    },
+    [setQueryProp]
+  );
+
   return (
     <input
       className="search"
@@ -174,6 +192,7 @@ function SearchBar({ queryProp, setQueryProp }) {
       placeholder="Search movies..."
       value={queryProp}
       onChange={(e) => setQueryProp(e.target.value)}
+      ref={inputElement}
     />
   );
 }

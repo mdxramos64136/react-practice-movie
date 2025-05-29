@@ -12,11 +12,15 @@ const KEY = "4098128";
 // and set the movies again as well. The whole thing starts over and over again
 export default function App() {
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  //const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState(function () {
+    const myStorage = localStorage.getItem("watched");
+    return JSON.parse(myStorage);
+  });
 
   function handleSelectedMovie(id) {
     // id will be get when user click on the movies <li>
@@ -30,6 +34,8 @@ export default function App() {
   function handleAddedMovie(movie) {
     setWatched((watched) => [...watched, movie]);
     handleCloseMovie();
+
+    //localStorage.setItem("watched", JSON.stringify([...watched, movie]));
   }
 
   //If dif. it will remain in the watched array (state). If id is the same,
@@ -37,6 +43,18 @@ export default function App() {
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
+
+  //Storing data using useEffect.
+  //Note que aqui nós nao precisamos utilizar o spreed operator ...watched porque
+  // o useEffect só será executado quando watched mudar, ou seja, após a execuçao
+  // de handleAddedMovie. logo, o dado já está atualizado, sem risco de stale data.
+
+  useEffect(
+    function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched]
+  );
 
   useEffect(
     function () {

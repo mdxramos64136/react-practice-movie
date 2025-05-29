@@ -22,11 +22,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-/ListeningToKeyPress.txt
-/CleanUpAndAbortController.txt
-/PersonalNotes.txt
+/MyNotes/ListeningToKeyPress.txt
+/MyNotes/CleanUpAndAbortController.txt
+/MyNotes/PersonalNotes.txt
 /README.mdfixing 
-/Premisse Handling.txt
+/MyNotes/Premisse Handling.txt
 /App-v1.js
+/App-v2.js
 /index-star.js
 /states sumary.docx
+/MyNotes/GitNotes.txt
+/src/App-v2.js
+/src/App-v1.js
+/MyNotes

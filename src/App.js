@@ -19,7 +19,7 @@ export default function App() {
   //const [watched, setWatched] = useState([]);
   const [watched, setWatched] = useState(function () {
     const myStorage = localStorage.getItem("watched");
-    return JSON.parse(myStorage);
+    return myStorage ? JSON.parse(myStorage) : []; //fixing bug to deploy on Netlify
   });
 
   function handleSelectedMovie(id) {
@@ -162,9 +162,7 @@ function NavBar({ children }) {
   );
 }
 //////////////////////////////////////////////////////////////////////
-// remember> .current acces the value of the ref (inputelement)
 // Putting focus on element. It activates the field for typing immediately
-// put the callback function out of the addeventListener so that you can clean it up later.
 function SearchBar({ queryProp, setQueryProp }) {
   const inputElement = useRef(null);
 
@@ -269,6 +267,15 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState(0);
 
+  const countRef = useRef(0);
+
+  useEffect(
+    function () {
+      if (userRating) countRef.current++;
+    },
+    [userRating]
+  );
+
   //true or false
   const isWatched = watchedProp
     .map((movie) => movie.imdbID)
@@ -303,6 +310,7 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countiRatingDecisions: countRef.current,
     };
 
     onAddWatched(newWatchedMovie);

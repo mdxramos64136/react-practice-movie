@@ -393,6 +393,7 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
             <div className="rating">
               {!isWatched ? (
                 <StarRating
+                  className="star-container"
                   maxRating={10}
                   size={30}
                   onExtRating={setUserRating}
@@ -442,7 +443,7 @@ function WatchedSumary({ watchedProp }) {
         </p>
         <p>
           <span>⏳</span>
-          <span>{avgRuntime} min</span>
+          <span>{Math.trunc(avgRuntime)} min</span>
         </p>
       </div>
     </div>

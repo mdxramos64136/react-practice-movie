@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
+import { useMovies } from "./useMovies";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
-//if a var does not depend on anything inside the component, just declare it outside.
 const KEY = "4098128";
+
 //Fixing Prop drilling. Remember: With {children} you can pass any content to the
 //child compoonent. In the parent, you just need to use opening and closing tag <open> any content </open>
 // In the child, just put {children} where you want to render the content, which will fetch again
 // and set the movies again as well. The whole thing starts over and over again
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   //const [watched, setWatched] = useState([]);
@@ -21,6 +19,9 @@ export default function App() {
     const myStorage = localStorage.getItem("watched");
     return myStorage ? JSON.parse(myStorage) : []; //fixing bug to deploy on Netlify
   });
+
+  // destructuring the data that is return from useMovies)
+  const { movies, error, isLoading } = useMovies(query, handleCloseMovie);
 
   function handleSelectedMovie(id) {
     // id will be get when user click on the movies <li>
@@ -51,52 +52,6 @@ export default function App() {
     },
     [watched]
   );
-
-  useEffect(
-    function () {
-      const controller = new AbortController();
-
-      async function fetchMovies() {
-        try {
-          setIsLoading(true);
-          setError("");
-
-          const res = await fetch(
-            `https://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-            { signal: controller.signal } // connecting the board controller with the fetch
-          );
-
-          if (!res.ok)
-            throw new Error("Something went wrong with fetching movies!");
-
-          // data will the the result of convertting the response (res) to json
-          const data = await res.json();
-
-          if (data.Response === "False") throw new Error("Movie not found!");
-
-          setMovies(data.Search);
-          setError("");
-        } catch (err) {
-          if (err.message !== "AbortError") setError(err.message);
-        } finally {
-          setIsLoading(false);
-        }
-      } // fetchMovies
-      if (query.length < 3) {
-        setMovies([]);
-        setError("");
-        return;
-      }
-
-      handleCloseMovie(); //close the movie detail when a new search occours
-      fetchMovies();
-
-      return function () {
-        controller.abort();
-      };
-    }, //outter function,
-    [query]
-  ); //useEffect
 
   return (
     <>
@@ -163,6 +118,7 @@ function NavBar({ children }) {
 }
 //////////////////////////////////////////////////////////////////////
 // Putting focus on element. It activates the field for typing immediately
+//document.activeElement  only checks whether the element is in focus() or not
 function SearchBar({ queryProp, setQueryProp }) {
   const inputElement = useRef(null);
 

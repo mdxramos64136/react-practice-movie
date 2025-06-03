@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
+import { useKey } from "./useKey";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -111,22 +112,12 @@ function NavBar({ children }) {
 function SearchBar({ queryProp, setQueryProp }) {
   const inputElement = useRef(null);
 
-  useEffect(
-    function () {
-      function callback(e) {
-        if (document.activeElement === inputElement.current) return;
-
-        if (e.code === "Enter") {
-          inputElement.current.focus();
-          setQueryProp("");
-        }
-      }
-
-      document.addEventListener("keydown", callback);
-      return () => document.removeEventListener("keydown", callback);
-    },
-    [setQueryProp]
-  );
+  //anonymous function passed as a callback as we have multiple actions
+  useKey("Enter", function () {
+    if (document.activeElement === inputElement.current) return;
+    inputElement.current.focus();
+    setQueryProp("");
+  });
 
   return (
     <input
@@ -270,20 +261,7 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
     //onCloseP();
   }
 
-  useEffect(
-    function () {
-      function calbackEsc(e) {
-        if (e.code === "Escape") onCloseP();
-      }
-
-      document.addEventListener("keydown", calbackEsc);
-
-      return function () {
-        document.removeEventListener("keydown", calbackEsc);
-      };
-    },
-    [onCloseP]
-  );
+  useKey("Escape", onCloseP);
 
   //Each time this component mounts, The movie correspondind to the selectedID
   //we be fetched.

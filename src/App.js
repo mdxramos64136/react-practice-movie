@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -14,14 +15,10 @@ const KEY = "4098128";
 export default function App() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-  //const [watched, setWatched] = useState([]);
-  const [watched, setWatched] = useState(function () {
-    const myStorage = localStorage.getItem("watched");
-    return myStorage ? JSON.parse(myStorage) : []; //fixing bug to deploy on Netlify
-  });
 
   // destructuring the data that is return from useMovies)
   const { movies, error, isLoading } = useMovies(query, handleCloseMovie);
+  const [watched, setWatched] = useLocalStorageState([], "watched");
 
   function handleSelectedMovie(id) {
     // id will be get when user click on the movies <li>
@@ -44,14 +41,6 @@ export default function App() {
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
-
-  //Storing data using useEffect.
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
 
   return (
     <>
@@ -211,7 +200,15 @@ function MovieList({ moviesProp, handleClick, onSelectedMovieP }) {
 function Movie({ movieMapProp, onSelectedMovieP }) {
   return (
     <li onClick={() => onSelectedMovieP(movieMapProp.imdbID)}>
-      <img src={movieMapProp.Poster} alt={`${movieMapProp.Title} poster`} />
+      <img
+        src={
+          movieMapProp.Poster && movieMapProp.Poster !== "N/A"
+            ? movieMapProp.Poster
+            : "/images/movie.jpg"
+        }
+        alt={`${movieMapProp.Title} poster`}
+        onError={(e) => (e.target.src = "/images/movie.jpg")}
+      />
       <h3>{movieMapProp.Title}</h3>
       <p>📅 {movieMapProp.Year}</p>
     </li>
@@ -332,7 +329,11 @@ function MovieDetails({ selectedIdProp, onCloseP, onAddWatched, watchedProp }) {
             <button className="btn-back" onClick={onCloseP}>
               &larr;
             </button>
-            <img src={poster} alt={`Posster of ${movie} movie`} />
+            <img
+              src={poster && poster !== "N/A" ? poster : "/images/movie.jpg"}
+              alt={`Posster of ${movie} movie`}
+              onError={(e) => (e.target.src = "/images/movie.jpg")}
+            />
             <div className="details-overview">
               <h2>{title}</h2>
               <p>
